@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOO & SPXL 투자 시뮬레이터</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .input-section {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .input-card label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .input-card input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .input-card input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .monthly-simulation {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .simulation-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .monthly-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.9rem;
+        }
+        
+        .monthly-table th {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .monthly-table td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.85rem;
+        }
+        
+        .monthly-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .monthly-table tr:hover {
+            background: #e3f2fd;
+        }
+        
+        .profit-positive {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .results-section {
+            padding: 40px;
+            background: white;
+        }
+        
+        .etf-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .etf-card {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .etf-header {
+            padding: 20px;
+            font-weight: 600;
+            font-size: 1.4rem;
+            text-align: center;
+            color: white;
+        }
+        
+        .voo-header {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+        
+        .spxl-header {
+            background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
+        }
+        
+        .etf-content {
+            padding: 25px;
+        }
+        
+        .period-result {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .period-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            font-weight: 500;
+            color: #6c757d;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .profit {
+            color: #27ae60;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .warning h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .warning p {
+            color: #856404;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .etf-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .monthly-table th, .monthly-table td {
+                padding: 8px 4px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 VOO & SPXL 투자 시뮬레이터</h1>
+            <p>과거 수익률 기반으로 투자 시뮬레이션을 해보세요!</p>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <div class="input-card">
+                    <label for="initialAmount">💰 원금 (원)</label>
+                    <input type="number" id="initialAmount" placeholder="예: 10000000" value="10000000">
+                </div>
+                <div class="input-card">
+                    <label for="monthlyAmount">📅 월 납입금 (원)</label>
+                    <input type="number" id="monthlyAmount" placeholder="예: 1000000" value="1000000">
+                </div>
+            </div>
+            
+            <button class="calculate-btn" onclick="calculateAll()">🔍 수익률 계산하기</button>
+            
+            <div class="monthly-simulation" id="monthlySimulation" style="display: none;">
+                <h3 class="simulation-title">📊 10년간 월별 투자 시뮬레이션 (120개월)</h3>
+                <div class="table-container">
+                    <table class="monthly-table">
+                        <thead>
+                            <tr>
+                                <th>기간</th>
+                                <th>총 투자금</th>
+                                <th>VOO 수익</th>
+                                <th>SPXL 수익</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthlyTableBody">
+                            <!-- 월별 데이터가 여기에 표시됩니다 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-section">
+            <div class="etf-comparison" id="results">
+                <!-- 기본 결과가 여기에 표시됩니다 -->
+            </div>
+            
+            <div class="warning">
+                <h3>⚠️ 투자 유의사항</h3>
+                <p>
+                    이 시뮬레이터는 과거 수익률을 기반으로 한 참고용 도구입니다. 
+                    실제 투자 결과는 다를 수 있으며, 모든 투자에는 손실 위험이 따릅니다. 
+                    특히 SPXL은 3배 레버리지 ETF로 변동성이 매우 크므로 신중한 투자 판단이 필요합니다.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 실제 과거 수익률 데이터
+        const historicalReturns = {
+            VOO: {
+                '3년': 0.572,    // 57.2%
+                '5년': 1.0279,   // 102.79%
+                '10년': 3.0696   // 306.96%
+            },
+            SPXL: {
+                '3년': 1.24,     // 124%
+                '5년': 2.5227,   // 252.27%
+                '10년': 11.6175  // 1,161.75%
+            }
+        };
+
+        // 연간 및 월간 수익률 계산
+        const vooAnnualReturn = Math.pow(1 + historicalReturns.VOO['10년'], 1/10) - 1;
+        const spxlAnnualReturn = Math.pow(1 + historicalReturns.SPXL['10년'], 1/10) - 1;
+        const vooMonthlyReturn = Math.pow(1 + vooAnnualReturn, 1/12) - 1;
+        const spxlMonthlyReturn = Math.pow(1 + spxlAnnualReturn, 1/12) - 1;
+
+        function calculateAll() {
+            const initialAmount = parseInt(document.getElementById('initialAmount').value) || 0;
+            const monthlyAmount = parseInt(document.getElementById('monthlyAmount').value) || 0;
+            
+            if (initialAmount === 0 && monthlyAmount === 0) {
+                alert('원금 또는 월 납입금을 입력해주세요!');
+                return;
+            }
+
+            // 기본 결과 계산
+            calculateBasicReturns(initialAmount, monthlyAmount);
+            
+            // 월별 시뮬레이션 생성
+            generateMonthlySimulation(initialAmount, monthlyAmount);
+            
+            // 월별 시뮬레이션 표시
+            document.getElementById('monthlySimulation').style.display = 'block';
+        }
+
+        function calculateBasicReturns(initialAmount, monthlyAmount) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            // VOO 결과 생성
+            const vooCard = createETFCard('VOO', '📊 S&P 500 Index ETF', 'voo-header', historicalReturns.VOO, initialAmount, monthlyAmount);
+            resultsDiv.appendChild(vooCard);
+
+            // SPXL 결과 생성
+            const spxlCard = createETFCard('SPXL', '🚀 S&P 500 3X Leveraged ETF', 'spxl-header', historicalReturns.SPXL, initialAmount, monthlyAmount);
+            resultsDiv.appendChild(spxlCard);
+        }
+
+        function createETFCard(etfName, fullName, headerClass, returns, initialAmount, monthlyAmount) {
+            const card = document.createElement('div');
+            card.className = 'etf-card';
+
+            const periods = ['3년', '5년', '10년'];
+            let cardContent = `
+                <div class="etf-header ${headerClass}">
+                    ${etfName} - ${fullName}
+                </div>
+                <div class="etf-content">
+            `;
+
+            periods.forEach(period => {
+                const years = parseInt(period);
+                const totalReturn = returns[period];
+                const annualizedReturn = Math.pow(1 + totalReturn, 1/years) - 1;
+                
+                let totalValue = initialAmount;
+                const monthlyReturn = Math.pow(1 + annualizedReturn, 1/12) - 1;
+                
+                if (monthlyAmount > 0) {
+                    for (let month = 1; month <= years * 12; month++) {
+                        totalValue = totalValue * (1 + monthlyReturn) + monthlyAmount;
+                    }
+                } else {
+                    totalValue = initialAmount * (1 + totalReturn);
+                }
+                
+                const totalInvested = initialAmount + (monthlyAmount * years * 12);
+                const profit = totalValue - totalInvested;
+                const profitRate = (profit / totalInvested) * 100;
+
+                cardContent += `
+                    <div class="period-result">
+                        <div class="period-title">${period} 투자 결과</div>
+                        <div class="result-row">
+                            <span class="result-label">총 투자금액</span>
+                            <span class="result-value">${formatCurrency(totalInvested)}</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">최종 자산</span>
+                            <span class="result-value profit">${formatCurrency(totalValue)}</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">총 수익</span>
+                            <span class="result-value profit">${formatCurrency(profit)}</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">수익률</span>
+                            <span class="result-value profit">${profitRate.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cardContent += '</div>';
+            card.innerHTML = cardContent;
+            return card;
+        }
+
+        function generateMonthlySimulation(initialAmount, monthlyAmount) {
+            const tableBody = document.getElementById('monthlyTableBody');
+            tableBody.innerHTML = '';
+
+            let vooValue = initialAmount;
+            let spxlValue = initialAmount;
+
+            // 초기 행
+            const initialRow = document.createElement('tr');
+            initialRow.innerHTML = `
+                <td><strong>초기</strong></td>
+                <td>${formatCurrency(initialAmount)}</td>
+                <td>₩0</td>
+                <td>₩0</td>
+            `;
+            tableBody.appendChild(initialRow);
+
+            // 120개월 계산
+            for (let month = 1; month <= 120; month++) {
+                // 매월 납입금 추가 후 수익률 적용
+                vooValue = (vooValue + monthlyAmount) * (1 + vooMonthlyReturn);
+                spxlValue = (spxlValue + monthlyAmount) * (1 + spxlMonthlyReturn);
+
+                const totalInvested = initialAmount + (monthlyAmount * month);
+                const vooProfit = Math.max(0, vooValue - totalInvested);
+                const spxlProfit = Math.max(0, spxlValue - totalInvested);
+
+                // 기간 표시 형식
+                const years = Math.floor(month / 12);
+                const months = month % 12;
+                let period;
+                
+                if (years > 0 && months > 0) {
+                    period = `${years}년 ${months}개월`;
+                } else if (years > 0) {
+                    period = `${years}년`;
+                } else {
+                    period = `${months}개월`;
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${period}</strong></td>
+                    <td>${formatCurrency(totalInvested)}</td>
+                    <td class="profit-positive">+${formatCurrency(vooProfit)}</td>
+                    <td class="profit-positive">+${formatCurrency(spxlProfit)}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ko-KR', {
+                style: 'currency',
+                currency: 'KRW',
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // 페이지 로드 시 기본 계산
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateAll();
+        });
+
+        // 입력값 변경 시 자동 계산
+        document.getElementById('initialAmount').addEventListener('input', calculateAll);
+        document.getElementById('monthlyAmount').addEventListener('input', calculateAll);
+    </script>
+</body>
+</html>
