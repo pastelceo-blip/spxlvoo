@@ -319,20 +319,22 @@
             justify-content: space-between;
             align-items: center;
             background: white;
-            padding: 15px 20px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #667eea;
         }
         
         .target-amount {
             font-weight: 700;
             color: #2c3e50;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
         
         .target-date {
             font-weight: 600;
             color: #667eea;
+            font-size: 1rem;
         }
         
         .target-faster {
@@ -346,10 +348,12 @@
         .target-comparison-badge {
             background: #667eea;
             color: white;
-            padding: 4px 8px;
-            border-radius: 15px;
-            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             font-weight: 600;
+            margin-top: 5px;
+            display: inline-block;
         }
         
         .target-comparison-badge.faster {
@@ -452,6 +456,15 @@
             <!-- 목표 달성 예정일 섹션 -->
             <div class="add-transaction-card">
                 <h3>🎯 목표 달성 예정일</h3>
+                
+                <!-- 월 추가투자 설정 -->
+                <div class="form-grid" style="margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label for="monthlyInvestmentInput">월 추가투자 금액 (원)</label>
+                        <input type="number" id="monthlyInvestmentInput" value="1000000" placeholder="예: 1000000" onchange="updateDashboard()">
+                    </div>
+                </div>
+                
                 <div class="target-grid">
                     <div class="target-comparison">
                         <h4>📈 현재 수익률 기준 (연 <span id="currentReturnRate">0%</span>)</h4>
@@ -597,52 +610,129 @@
             return Math.pow(1 + (totalReturn / 100), 365 / days) - 1;
         }
 
-        // 목표 금액 달성 예정일 계산
-        function calculateTargetDates(currentValue, annualReturn) {
+        // 목표 금액 달성 예정일 계산 (일 단위까지 정확하게)
+        function calculateTargetDates(currentValue, annualReturn, monthlyInvestment = 1000000) {
             const targets = [200000000, 300000000, 500000000, 1000000000]; // 2억, 3억, 5억, 10억
             const results = [];
             
-            if (annualReturn <= 0 || currentValue <= 0) {
+            if (annualReturn <= 0) {
                 return targets.map(target => ({
                     amount: target,
                     date: "수익률이 양수일 때 계산 가능",
-                    years: 0
+                    fullDate: "N/A",
+                    years: 0,
+                    months: 0,
+                    days: 0
                 }));
             }
+            
+            const dailyReturn = annualReturn / 100 / 365; // 일 수익률
+            const monthlyInvestmentDaily = monthlyInvestment / 30; // 일 평균 투자금 (편의상 30일 기준)
             
             targets.forEach(target => {
                 if (currentValue >= target) {
                     results.push({
                         amount: target,
                         date: "달성 완료! 🎉",
-                        years: 0
+                        fullDate: "이미 달성됨",
+                        exactDate: new Date(),
+                        years: 0,
+                        months: 0,
+                        days: 0
                     });
                 } else {
-                    // 복리 계산: FV = PV * (1 + r)^t => t = ln(FV/PV) / ln(1 + r)
-                    const years = Math.log(target / currentValue) / Math.log(1 + (annualReturn / 100));
-                    const targetDate = new Date();
-                    targetDate.setFullYear(targetDate.getFullYear() + years);
+                    // 일별 계산으로 더 정확한 달성일 계산
+                    let daysNeeded = 0;
+                    let futureValue = currentValue;
+                    const maxDays = 50 * 365; // 최대 50년
                     
-                    results.push({
-                        amount: target,
-                        date: `${targetDate.getFullYear()}년 ${targetDate.getMonth() + 1}월`,
-                        years: years
-                    });
+                    // 매일 계산하여 목표 금액에 도달하는 일 수 찾기
+                    while (futureValue < target && daysNeeded < maxDays) {
+                        daysNeeded++;
+                        
+                        // 매일 수익률 적용
+                        futureValue = futureValue * (1 + dailyReturn);
+                        
+                        // 매월 1일에 월 투자금 추가 (30일마다)
+                        if (daysNeeded % 30 === 0) {
+                            futureValue += monthlyInvestment;
+                        }
+                    }
+                    
+                    if (daysNeeded >= maxDays) {
+                        results.push({
+                            amount: target,
+                            date: "50년+ (달성 어려움)",
+                            fullDate: "장기간 소요",
+                            exactDate: null,
+                            years: 50,
+                            months: 0,
+                            days: 0
+                        });
+                    } else {
+                        // 정확한 날짜 계산
+                        const targetDate = new Date();
+                        targetDate.setDate(targetDate.getDate() + daysNeeded);
+                        
+                        const years = Math.floor(daysNeeded / 365);
+                        const remainingDays = daysNeeded % 365;
+                        const months = Math.floor(remainingDays / 30);
+                        const days = remainingDays % 30;
+                        
+                        // 날짜 포맷팅 (요일 포함)
+                        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+                        const fullDateStr = `${targetDate.getFullYear()}년 ${targetDate.getMonth() + 1}월 ${targetDate.getDate()}일 (${weekdays[targetDate.getDay()]})`;
+                        
+                        // 기간 표시 (더 정확하게)
+                        let periodStr = '';
+                        const periodParts = [];
+                        
+                        if (years > 0) periodParts.push(`${years}년`);
+                        if (months > 0) periodParts.push(`${months}개월`);
+                        if (days > 0) periodParts.push(`${days}일`);
+                        
+                        if (periodParts.length === 0) {
+                            periodStr = '오늘';
+                        } else {
+                            periodStr = periodParts.join(' ') + ' 후';
+                        }
+                        
+                        // D-Day 계산
+                        const dDayStr = `D-${daysNeeded}`;
+                        
+                        results.push({
+                            amount: target,
+                            date: periodStr,
+                            fullDate: fullDateStr,
+                            exactDate: targetDate,
+                            dDay: dDayStr,
+                            years: years + (remainingDays / 365),
+                            months: Math.floor(daysNeeded / 30),
+                            days: daysNeeded
+                        });
+                    }
                 }
             });
             
             return results;
         }
 
+        // 월 추가투자 입력 필드 추가를 위한 함수
+        function getMonthlyInvestment() {
+            const monthlyInput = document.getElementById('monthlyInvestmentInput');
+            return monthlyInput ? parseFloat(monthlyInput.value) || 1000000 : 1000000;
+        }
+
         // 목표 달성 섹션 업데이트
         function updateTargetAchievement(currentValue, currentAnnualReturn) {
             const targetReturn = 13; // 목표 연 수익률 13%
+            const monthlyInvestment = getMonthlyInvestment(); // 월 추가투자금액
             
             // 현재 수익률 기준 계산
-            const currentTargets = calculateTargetDates(currentValue, currentAnnualReturn);
+            const currentTargets = calculateTargetDates(currentValue, currentAnnualReturn, monthlyInvestment);
             
             // 목표 수익률 기준 계산
-            const goalTargets = calculateTargetDates(currentValue, targetReturn);
+            const goalTargets = calculateTargetDates(currentValue, targetReturn, monthlyInvestment);
             
             // 현재 수익률 표시
             document.getElementById('currentReturnRate').textContent = currentAnnualReturn.toFixed(1) + '%';
@@ -665,7 +755,11 @@
             const currentTargetsHtml = currentTargets.map(target => `
                 <div class="target-item">
                     <span class="target-amount">${formatCurrency(target.amount)}</span>
-                    <span class="target-date">${target.date}</span>
+                    <div style="text-align: right;">
+                        <div class="target-date" style="font-weight: 700; color: #2c3e50; font-size: 1rem;">${target.fullDate}</div>
+                        <div style="font-size: 0.9rem; color: #667eea; margin-top: 2px;">${target.date}</div>
+                        ${target.dDay ? `<div style="font-size: 0.8rem; color: #e74c3c; font-weight: 600; margin-top: 2px;">${target.dDay}</div>` : ''}
+                    </div>
                 </div>
             `).join('');
             document.getElementById('currentTargets').innerHTML = currentTargetsHtml;
@@ -675,12 +769,26 @@
                 const currentTarget = currentTargets[index];
                 let comparisonBadge = '';
                 
-                if (currentTarget.years > 0 && target.years > 0) {
-                    const yearsDiff = target.years - currentTarget.years;
-                    if (yearsDiff > 0.5) {
-                        comparisonBadge = `<span class="target-comparison-badge faster">${yearsDiff.toFixed(1)}년 빠름</span>`;
-                    } else if (yearsDiff < -0.5) {
-                        comparisonBadge = `<span class="target-comparison-badge slower">${Math.abs(yearsDiff).toFixed(1)}년 늦음</span>`;
+                if (currentTarget.days > 0 && target.days > 0 && currentTarget.days < 50 * 365 && target.days < 50 * 365) {
+                    const daysDiff = target.days - currentTarget.days;
+                    const yearsDiff = daysDiff / 365;
+                    
+                    if (Math.abs(daysDiff) >= 30) {  // 30일 이상 차이날 때만 표시
+                        if (daysDiff > 0) {
+                            if (yearsDiff >= 1) {
+                                comparisonBadge = `<span class="target-comparison-badge faster">${yearsDiff.toFixed(1)}년 빠름</span>`;
+                            } else {
+                                const monthsDiff = Math.floor(daysDiff / 30);
+                                comparisonBadge = `<span class="target-comparison-badge faster">${monthsDiff}개월 빠름</span>`;
+                            }
+                        } else {
+                            if (Math.abs(yearsDiff) >= 1) {
+                                comparisonBadge = `<span class="target-comparison-badge slower">${Math.abs(yearsDiff).toFixed(1)}년 늦음</span>`;
+                            } else {
+                                const monthsDiff = Math.floor(Math.abs(daysDiff) / 30);
+                                comparisonBadge = `<span class="target-comparison-badge slower">${monthsDiff}개월 늦음</span>`;
+                            }
+                        }
                     } else {
                         comparisonBadge = `<span class="target-comparison-badge">비슷함</span>`;
                     }
@@ -690,7 +798,9 @@
                     <div class="target-item">
                         <span class="target-amount">${formatCurrency(target.amount)}</span>
                         <div style="text-align: right;">
-                            <div class="target-date">${target.date}</div>
+                            <div class="target-date" style="font-weight: 700; color: #2c3e50; font-size: 1rem;">${target.fullDate}</div>
+                            <div style="font-size: 0.9rem; color: #667eea; margin-top: 2px;">${target.date}</div>
+                            ${target.dDay ? `<div style="font-size: 0.8rem; color: #e74c3c; font-weight: 600; margin-top: 2px;">${target.dDay}</div>` : ''}
                             ${comparisonBadge}
                         </div>
                     </div>
