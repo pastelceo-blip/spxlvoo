@@ -289,6 +289,73 @@
             font-weight: 700;
         }
         
+        .target-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .target-comparison {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .target-comparison h4 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .target-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .target-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .target-amount {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .target-date {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .target-faster {
+            color: #27ae60;
+        }
+        
+        .target-slower {
+            color: #e74c3c;
+        }
+        
+        .target-comparison-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .target-comparison-badge.faster {
+            background: #27ae60;
+        }
+        
         @media (max-width: 768px) {
             .portfolio-overview {
                 grid-template-columns: 1fr;
@@ -304,6 +371,14 @@
             
             .transaction-table {
                 font-size: 0.8rem;
+            }
+            
+            .target-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
         }
     </style>
@@ -367,6 +442,29 @@
                 <div class="summary-card">
                     <div class="summary-title">연 예상수익률</div>
                     <div class="summary-value" id="annualizedReturn">0%</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-title">목표 대비</div>
+                    <div class="summary-value" id="targetComparison">vs 13%</div>
+                </div>
+            </div>
+            
+            <!-- 목표 달성 예정일 섹션 -->
+            <div class="add-transaction-card">
+                <h3>🎯 목표 달성 예정일</h3>
+                <div class="target-grid">
+                    <div class="target-comparison">
+                        <h4>📈 현재 수익률 기준 (연 <span id="currentReturnRate">0%</span>)</h4>
+                        <div class="target-list" id="currentTargets">
+                            <!-- 현재 수익률 기준 목표 달성일 -->
+                        </div>
+                    </div>
+                    <div class="target-comparison">
+                        <h4>🎯 목표 수익률 기준 (연 13%)</h4>
+                        <div class="target-list" id="goalTargets">
+                            <!-- 목표 수익률 기준 달성일 -->
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -497,6 +595,108 @@
         function calculateAnnualizedReturn(totalReturn, days) {
             if (days <= 0) return 0;
             return Math.pow(1 + (totalReturn / 100), 365 / days) - 1;
+        }
+
+        // 목표 금액 달성 예정일 계산
+        function calculateTargetDates(currentValue, annualReturn) {
+            const targets = [200000000, 300000000, 500000000, 1000000000]; // 2억, 3억, 5억, 10억
+            const results = [];
+            
+            if (annualReturn <= 0 || currentValue <= 0) {
+                return targets.map(target => ({
+                    amount: target,
+                    date: "수익률이 양수일 때 계산 가능",
+                    years: 0
+                }));
+            }
+            
+            targets.forEach(target => {
+                if (currentValue >= target) {
+                    results.push({
+                        amount: target,
+                        date: "달성 완료! 🎉",
+                        years: 0
+                    });
+                } else {
+                    // 복리 계산: FV = PV * (1 + r)^t => t = ln(FV/PV) / ln(1 + r)
+                    const years = Math.log(target / currentValue) / Math.log(1 + (annualReturn / 100));
+                    const targetDate = new Date();
+                    targetDate.setFullYear(targetDate.getFullYear() + years);
+                    
+                    results.push({
+                        amount: target,
+                        date: `${targetDate.getFullYear()}년 ${targetDate.getMonth() + 1}월`,
+                        years: years
+                    });
+                }
+            });
+            
+            return results;
+        }
+
+        // 목표 달성 섹션 업데이트
+        function updateTargetAchievement(currentValue, currentAnnualReturn) {
+            const targetReturn = 13; // 목표 연 수익률 13%
+            
+            // 현재 수익률 기준 계산
+            const currentTargets = calculateTargetDates(currentValue, currentAnnualReturn);
+            
+            // 목표 수익률 기준 계산
+            const goalTargets = calculateTargetDates(currentValue, targetReturn);
+            
+            // 현재 수익률 표시
+            document.getElementById('currentReturnRate').textContent = currentAnnualReturn.toFixed(1) + '%';
+            
+            // 목표 대비 성과 표시
+            const comparison = currentAnnualReturn - targetReturn;
+            const comparisonElement = document.getElementById('targetComparison');
+            if (comparison > 0) {
+                comparisonElement.textContent = `+${comparison.toFixed(1)}%p`;
+                comparisonElement.className = 'summary-value profit';
+            } else if (comparison < 0) {
+                comparisonElement.textContent = `${comparison.toFixed(1)}%p`;
+                comparisonElement.className = 'summary-value loss';
+            } else {
+                comparisonElement.textContent = '목표와 동일';
+                comparisonElement.className = 'summary-value';
+            }
+            
+            // 현재 수익률 기준 목표 달성일 표시
+            const currentTargetsHtml = currentTargets.map(target => `
+                <div class="target-item">
+                    <span class="target-amount">${formatCurrency(target.amount)}</span>
+                    <span class="target-date">${target.date}</span>
+                </div>
+            `).join('');
+            document.getElementById('currentTargets').innerHTML = currentTargetsHtml;
+            
+            // 목표 수익률 기준 달성일 표시 (비교 포함)
+            const goalTargetsHtml = goalTargets.map((target, index) => {
+                const currentTarget = currentTargets[index];
+                let comparisonBadge = '';
+                
+                if (currentTarget.years > 0 && target.years > 0) {
+                    const yearsDiff = target.years - currentTarget.years;
+                    if (yearsDiff > 0.5) {
+                        comparisonBadge = `<span class="target-comparison-badge faster">${yearsDiff.toFixed(1)}년 빠름</span>`;
+                    } else if (yearsDiff < -0.5) {
+                        comparisonBadge = `<span class="target-comparison-badge slower">${Math.abs(yearsDiff).toFixed(1)}년 늦음</span>`;
+                    } else {
+                        comparisonBadge = `<span class="target-comparison-badge">비슷함</span>`;
+                    }
+                }
+                
+                return `
+                    <div class="target-item">
+                        <span class="target-amount">${formatCurrency(target.amount)}</span>
+                        <div style="text-align: right;">
+                            <div class="target-date">${target.date}</div>
+                            ${comparisonBadge}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('goalTargets').innerHTML = goalTargetsHtml;
         }
 
         // Firebase 자동 연결
@@ -768,6 +968,9 @@
 
             // ETF 카드 업데이트
             updateETFCards(etfData, currentPrices);
+            
+            // 목표 달성 예정일 업데이트
+            updateTargetAchievement(totalCurrentValue, annualizedReturn);
         }
 
         // ETF 카드 업데이트
