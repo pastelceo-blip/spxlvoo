@@ -430,6 +430,8 @@
         // Firebase 자동 연결
         async function initializeFirebase() {
             try {
+                console.log('Firebase 초기화 시작...');
+                
                 const firebaseConfig = {
                     apiKey: "AIzaSyAAXr7parhL6wQuUzy4MPvVhV6-J53wzcA",
                     authDomain: "pastelmovie-cac7a.firebaseapp.com",
@@ -444,29 +446,38 @@
                 firebaseApp = initializeApp(firebaseConfig);
                 db = getFirestore(firebaseApp);
 
+                console.log('Firebase 연결 성공');
                 document.getElementById('firebaseStatus').innerHTML = '✅ Firebase 연결 성공! (pastelmovie-cac7a)';
                 document.getElementById('firebaseStatus').className = 'firebase-status';
 
                 // 기존 데이터 로드
                 await loadTransactions();
-                updateDashboard();
 
             } catch (error) {
                 console.error('Firebase 초기화 오류:', error);
                 document.getElementById('firebaseStatus').innerHTML = '❌ Firebase 연결 실패: ' + error.message;
                 document.getElementById('firebaseStatus').className = 'firebase-status error';
+                
+                // 연결 실패해도 빈 대시보드 표시
+                transactions = [];
+                updateDashboard();
             }
         }
 
-        // 초기 데이터 로드
+        // 초기 데이터 로드 - 실제 투자 내역
         async function loadInitialData() {
             const initialTransactions = [
+                // SPXL 거래 내역
                 { symbol: 'SPXL', date: '2025-03-18', shares: 46, price: 215307 },
                 { symbol: 'SPXL', date: '2025-03-19', shares: 136, price: 208983 },
                 { symbol: 'SPXL', date: '2025-06-09', shares: 92, price: 215544 },
                 { symbol: 'SPXL', date: '2025-07-18', shares: 1, price: 251176 },
                 { symbol: 'SPXL', date: '2025-09-08', shares: 68, price: 271874 },
+                
+                // VOO 거래 내역
                 { symbol: 'VOO', date: '2025-09-18', shares: 1, price: 841655 },
+                
+                // QQQM 거래 내역
                 { symbol: 'QQQM', date: '2025-09-18', shares: 4, price: 336382 }
             ];
 
@@ -538,20 +549,31 @@
 
         // 거래 내역 로드
         async function loadTransactions() {
-            if (!db) return;
+            if (!db) {
+                console.log('DB가 초기화되지 않음');
+                return;
+            }
 
             try {
+                console.log('거래 내역 로드 시작...');
                 const q = query(collection(db, 'portfolio_transactions'), orderBy('date', 'desc'));
                 const querySnapshot = await getDocs(q);
                 
                 transactions = [];
                 querySnapshot.forEach((doc) => {
-                    transactions.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    console.log('로드된 거래:', data);
+                    transactions.push({ id: doc.id, ...data });
                 });
 
+                console.log('총 로드된 거래 수:', transactions.length);
                 updateTransactionTable();
+                updateDashboard(); // 여기서 대시보드도 업데이트
             } catch (error) {
                 console.error('거래 내역 로드 오류:', error);
+                // 오류가 발생해도 빈 배열로 대시보드 업데이트
+                transactions = [];
+                updateDashboard();
             }
         }
 
@@ -599,12 +621,16 @@
 
         // 대시보드 업데이트
         function updateDashboard() {
+            console.log('대시보드 업데이트 시작, 거래 수:', transactions.length);
+            
             // ETF별 데이터 집계
             const etfData = {};
             let totalInvested = 0;
             let totalCurrentValue = 0;
 
             transactions.forEach(transaction => {
+                console.log('처리 중인 거래:', transaction);
+                
                 const symbol = transaction.symbol;
                 if (!etfData[symbol]) {
                     etfData[symbol] = {
@@ -624,6 +650,9 @@
                 totalCurrentValue += transaction.shares * (transaction.currentPrice || transaction.pricePerShare);
             });
 
+            console.log('총 투자금액:', totalInvested);
+            console.log('총 평가액:', totalCurrentValue);
+
             // 전체 요약 업데이트
             const totalProfit = totalCurrentValue - totalInvested;
             const totalReturn = totalInvested > 0 ? (totalProfit / totalInvested * 100) : 0;
@@ -632,6 +661,10 @@
             document.getElementById('totalValue').textContent = formatCurrency(totalCurrentValue);
             document.getElementById('totalProfit').textContent = formatCurrency(totalProfit);
             document.getElementById('totalReturn').textContent = totalReturn.toFixed(1) + '%';
+
+            // 수익률에 따른 색상 적용
+            document.getElementById('totalProfit').className = totalProfit >= 0 ? 'profit' : 'loss';
+            document.getElementById('totalReturn').className = totalProfit >= 0 ? 'profit' : 'loss';
 
             // ETF 카드 업데이트
             updateETFCards(etfData);
