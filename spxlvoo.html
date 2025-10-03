@@ -457,7 +457,7 @@
                 </div>
                 <div class="summary-card">
                     <div class="summary-title">목표 대비</div>
-                    <div class="summary-value" id="targetComparison">vs 13%</div>
+                    <div class="summary-value" id="targetComparison">vs 7.5%</div>
                 </div>
             </div>
             
@@ -481,7 +481,7 @@
                         </div>
                     </div>
                     <div class="target-comparison">
-                        <h4>🎯 목표 수익률 기준 (연 13%)</h4>
+                        <h4>🎯 목표 수익률 기준 (연 7.5% - VOO 평균)</h4>
                         <div class="target-list" id="goalTargets">
                             <!-- 목표 수익률 기준 달성일 -->
                         </div>
@@ -733,7 +733,7 @@
 
         // 목표 달성 섹션 업데이트
         function updateTargetAchievement(currentValue, currentAnnualReturn) {
-            const targetReturn = 13; // 목표 연 수익률 13%
+            const targetReturn = 7.5; // 목표 연 수익률 7.5% (VOO 평균)
             const monthlyInvestment = getMonthlyInvestment(); // 월 추가투자금액
             
             // 현재 수익률 기준 계산
