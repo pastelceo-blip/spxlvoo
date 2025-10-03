@@ -311,7 +311,9 @@
         
         .target-list {
             display: grid;
-            gap: 15px;
+            gap: 12px;
+            max-height: 600px;
+            overflow-y: auto;
         }
         
         .target-item {
@@ -319,16 +321,22 @@
             justify-content: space-between;
             align-items: center;
             background: white;
-            padding: 20px;
+            padding: 18px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .target-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
         .target-amount {
             font-weight: 700;
             color: #2c3e50;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
         
         .target-date {
@@ -612,7 +620,7 @@
 
         // 목표 금액 달성 예정일 계산 (일 단위까지 정확하게)
         function calculateTargetDates(currentValue, annualReturn, monthlyInvestment = 1000000) {
-            const targets = [200000000, 300000000, 500000000, 1000000000]; // 2억, 3억, 5억, 10억
+            const targets = [200000000, 300000000, 500000000, 1000000000, 2000000000, 3000000000, 5000000000]; // 2억, 3억, 5억, 10억, 20억, 30억, 50억
             const results = [];
             
             if (annualReturn <= 0) {
@@ -644,7 +652,7 @@
                     // 일별 계산으로 더 정확한 달성일 계산
                     let daysNeeded = 0;
                     let futureValue = currentValue;
-                    const maxDays = 50 * 365; // 최대 50년
+                    const maxDays = 80 * 365; // 최대 80년 (50억까지 계산하므로 늘림)
                     
                     // 매일 계산하여 목표 금액에 도달하는 일 수 찾기
                     while (futureValue < target && daysNeeded < maxDays) {
@@ -662,10 +670,10 @@
                     if (daysNeeded >= maxDays) {
                         results.push({
                             amount: target,
-                            date: "50년+ (달성 어려움)",
+                            date: "80년+ (달성 어려움)",
                             fullDate: "장기간 소요",
                             exactDate: null,
-                            years: 50,
+                            years: 80,
                             months: 0,
                             days: 0
                         });
@@ -698,7 +706,7 @@
                         }
                         
                         // D-Day 계산
-                        const dDayStr = `D-${daysNeeded}`;
+                        const dDayStr = `D-${daysNeeded.toLocaleString()}`;
                         
                         results.push({
                             amount: target,
@@ -769,7 +777,7 @@
                 const currentTarget = currentTargets[index];
                 let comparisonBadge = '';
                 
-                if (currentTarget.days > 0 && target.days > 0 && currentTarget.days < 50 * 365 && target.days < 50 * 365) {
+                if (currentTarget.days > 0 && target.days > 0 && currentTarget.days < 80 * 365 && target.days < 80 * 365) {
                     const daysDiff = target.days - currentTarget.days;
                     const yearsDiff = daysDiff / 365;
                     
