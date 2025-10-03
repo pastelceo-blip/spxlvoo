@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOO & SPXL 투자 시뮬레이터</title>
+    <title>VOO & SPXL 실제 투자 트래커</title>
     <style>
         * {
             margin: 0;
@@ -44,199 +44,228 @@
             opacity: 0.9;
         }
         
-        .input-section {
-            padding: 40px;
+        .nav-tabs {
+            display: flex;
             background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6c757d;
+        }
+        
+        .nav-tab.active {
+            background: white;
+            color: #2c3e50;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 40px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .setup-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .setup-card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
         }
         
         .input-group {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 30px;
+            gap: 20px;
+            margin-bottom: 20px;
         }
         
         .input-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
         }
         
         .input-card label {
             display: block;
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
+            margin-bottom: 8px;
         }
         
-        .input-card input {
+        .input-card input, .input-card select {
             width: 100%;
-            padding: 15px;
+            padding: 12px;
             border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1.1rem;
+            border-radius: 8px;
+            font-size: 1rem;
         }
         
-        .input-card input:focus {
+        .input-card input:focus, .input-card select:focus {
             outline: none;
             border-color: #667eea;
         }
         
-        .calculate-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .btn {
+            padding: 15px 30px;
             border: none;
-            border-radius: 15px;
-            font-size: 1.3rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.3s ease;
-            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            margin: 10px;
         }
         
-        .calculate-btn:hover {
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        .btn:hover {
             transform: translateY(-2px);
         }
         
-        .monthly-simulation {
-            background: white;
+        .status-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
         
-        .simulation-title {
-            text-align: center;
-            font-size: 1.5rem;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        
-        .table-container {
-            max-height: 600px;
-            overflow-y: auto;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .monthly-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            font-size: 0.9rem;
-        }
-        
-        .monthly-table th {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 12px 8px;
-            text-align: center;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        .monthly-table td {
-            padding: 10px 8px;
-            text-align: center;
-            border-bottom: 1px solid #e9ecef;
-            font-size: 0.85rem;
-        }
-        
-        .monthly-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        
-        .monthly-table tr:hover {
-            background: #e3f2fd;
-        }
-        
-        .profit-positive {
-            color: #27ae60;
-            font-weight: 600;
-        }
-        
-        .results-section {
-            padding: 40px;
-            background: white;
-        }
-        
-        .etf-comparison {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
-        .etf-card {
-            border: 2px solid #e9ecef;
-            border-radius: 15px;
-            overflow: hidden;
-        }
-        
-        .etf-header {
-            padding: 20px;
-            font-weight: 600;
-            font-size: 1.4rem;
-            text-align: center;
-            color: white;
-        }
-        
-        .voo-header {
-            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-        }
-        
-        .spxl-header {
-            background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
-        }
-        
-        .etf-content {
-            padding: 25px;
-        }
-        
-        .period-result {
-            margin-bottom: 25px;
-            padding: 20px;
-            border-radius: 10px;
-            background: #f8f9fa;
-        }
-        
-        .period-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #2c3e50;
-        }
-        
-        .result-row {
+        .status-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
         }
         
-        .result-row:last-child {
+        .status-row:last-child {
             border-bottom: none;
+            margin-bottom: 0;
         }
         
-        .result-label {
-            font-weight: 500;
+        .status-label {
+            font-weight: 600;
             color: #6c757d;
         }
         
-        .result-value {
-            font-weight: 600;
+        .status-value {
+            font-weight: 700;
             color: #2c3e50;
+            font-size: 1.1rem;
         }
         
         .profit {
             color: #27ae60;
+        }
+        
+        .loss {
+            color: #e74c3c;
+        }
+        
+        .monthly-input-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .monthly-record {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .record-date {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .record-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .detail-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .firebase-status {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #155724;
+        }
+        
+        .firebase-status.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
         
         .warning {
@@ -258,21 +287,21 @@
         }
         
         @media (max-width: 768px) {
-            .etf-comparison {
-                grid-template-columns: 1fr;
-            }
-            
             .input-group {
                 grid-template-columns: 1fr;
             }
             
-            .header h1 {
-                font-size: 2rem;
+            .nav-tabs {
+                flex-direction: column;
             }
             
-            .monthly-table th, .monthly-table td {
-                padding: 8px 4px;
-                font-size: 0.8rem;
+            .record-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-row {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
@@ -280,221 +309,410 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📈 VOO & SPXL 투자 시뮬레이터</h1>
-            <p>과거 수익률 기반으로 투자 시뮬레이션을 해보세요!</p>
+            <h1>📊 VOO & SPXL 실제 투자 트래커</h1>
+            <p>2025년 3월부터 시작한 실제 투자를 기록하고 추적하세요!</p>
         </div>
         
-        <div class="input-section">
-            <div class="input-group">
-                <div class="input-card">
-                    <label for="initialAmount">💰 원금 (원)</label>
-                    <input type="number" id="initialAmount" placeholder="예: 10000000" value="10000000">
-                </div>
-                <div class="input-card">
-                    <label for="monthlyAmount">📅 월 납입금 (원)</label>
-                    <input type="number" id="monthlyAmount" placeholder="예: 1000000" value="1000000">
-                </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('setup')">🔧 초기 설정</button>
+            <button class="nav-tab" onclick="showTab('monthly')">📅 월별 기록</button>
+            <button class="nav-tab" onclick="showTab('dashboard')">📈 대시보드</button>
+        </div>
+        
+        <!-- 초기 설정 탭 -->
+        <div id="setup" class="tab-content active">
+            <div id="firebaseStatus" class="firebase-status">
+                ✅ Firebase 연결 준비 완료! (pastelmovie-cac7a 프로젝트)
             </div>
             
-            <button class="calculate-btn" onclick="calculateAll()">🔍 수익률 계산하기</button>
+            <div class="setup-card">
+                <h3>🔥 Firebase 연결</h3>
+                <p>이전에 사용하던 pastelmovie-cac7a 프로젝트를 사용합니다.</p>
+                <button class="btn btn-primary" onclick="initializeFirebase()">🔗 Firebase 자동 연결</button>
+            </div>
             
-            <div class="monthly-simulation" id="monthlySimulation" style="display: none;">
-                <h3 class="simulation-title">📊 10년간 월별 투자 시뮬레이션 (120개월)</h3>
-                <div class="table-container">
-                    <table class="monthly-table">
-                        <thead>
-                            <tr>
-                                <th>기간</th>
-                                <th>총 투자금</th>
-                                <th>VOO 수익</th>
-                                <th>SPXL 수익</th>
-                            </tr>
-                        </thead>
-                        <tbody id="monthlyTableBody">
-                            <!-- 월별 데이터가 여기에 표시됩니다 -->
-                        </tbody>
-                    </table>
+            <div class="setup-card">
+                <h3>💰 초기 투자 설정 (2025년 3월)</h3>
+                <div class="input-group">
+                    <div class="input-card">
+                        <label for="startDate">투자 시작일</label>
+                        <input type="date" id="startDate" value="2025-03-01">
+                    </div>
+                    <div class="input-card">
+                        <label for="initialVooAmount">VOO 초기 투자금 (원)</label>
+                        <input type="number" id="initialVooAmount" placeholder="예: 5000000">
+                    </div>
+                    <div class="input-card">
+                        <label for="initialSpxlAmount">SPXL 초기 투자금 (원)</label>
+                        <input type="number" id="initialSpxlAmount" placeholder="예: 5000000">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="saveInitialSettings()">💾 초기 설정 저장</button>
+            </div>
+        </div>
+        
+        <!-- 월별 기록 탭 -->
+        <div id="monthly" class="tab-content">
+            <div class="monthly-input-card">
+                <h3>📅 월별 투자 기록 입력</h3>
+                <div class="input-group">
+                    <div class="input-card">
+                        <label for="recordDate">기록 날짜</label>
+                        <input type="date" id="recordDate">
+                    </div>
+                    <div class="input-card">
+                        <label for="monthlyVooInvestment">VOO 추가 투자금 (원)</label>
+                        <input type="number" id="monthlyVooInvestment" placeholder="예: 500000">
+                    </div>
+                    <div class="input-card">
+                        <label for="monthlySpxlInvestment">SPXL 추가 투자금 (원)</label>
+                        <input type="number" id="monthlySpxlInvestment" placeholder="예: 500000">
+                    </div>
+                    <div class="input-card">
+                        <label for="currentVooValue">VOO 현재 평가액 (원)</label>
+                        <input type="number" id="currentVooValue" placeholder="현재 VOO 총 평가액">
+                    </div>
+                    <div class="input-card">
+                        <label for="currentSpxlValue">SPXL 현재 평가액 (원)</label>
+                        <input type="number" id="currentSpxlValue" placeholder="현재 SPXL 총 평가액">
+                    </div>
+                    <div class="input-card">
+                        <label for="expectedAnnualReturn">예상 연간 수익률 (%)</label>
+                        <input type="number" id="expectedAnnualReturn" step="0.1" placeholder="예: 12.5">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="saveMonthlyRecord()">📝 월별 기록 저장</button>
+            </div>
+            
+            <div class="monthly-input-card">
+                <h3>📊 저장된 기록</h3>
+                <div id="monthlyRecords">
+                    <!-- 월별 기록이 여기에 표시됩니다 -->
                 </div>
             </div>
         </div>
         
-        <div class="results-section">
-            <div class="etf-comparison" id="results">
-                <!-- 기본 결과가 여기에 표시됩니다 -->
+        <!-- 대시보드 탭 -->
+        <div id="dashboard" class="tab-content">
+            <div class="status-card">
+                <h3>📈 현재 투자 현황</h3>
+                <div id="currentStatus">
+                    <!-- 현재 상태가 여기에 표시됩니다 -->
+                </div>
             </div>
             
-            <div class="warning">
-                <h3>⚠️ 투자 유의사항</h3>
-                <p>
-                    이 시뮬레이터는 과거 수익률을 기반으로 한 참고용 도구입니다. 
-                    실제 투자 결과는 다를 수 있으며, 모든 투자에는 손실 위험이 따릅니다. 
-                    특히 SPXL은 3배 레버리지 ETF로 변동성이 매우 크므로 신중한 투자 판단이 필요합니다.
-                </p>
+            <div class="chart-container">
+                <h3>📊 투자 성과 그래프</h3>
+                <canvas id="performanceChart" width="400" height="200"></canvas>
             </div>
+            
+            <div class="status-card">
+                <h3>🎯 목표 대비 성과</h3>
+                <div id="targetComparison">
+                    <!-- 목표 대비 성과가 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <h3>⚠️ 투자 유의사항</h3>
+            <p>
+                이 트래커는 개인 투자 기록 관리를 위한 도구입니다. 
+                모든 투자에는 손실 위험이 따르므로 신중한 투자 판단이 필요합니다. 
+                특히 SPXL은 3배 레버리지 ETF로 변동성이 매우 크므로 주의하시기 바랍니다.
+            </p>
         </div>
     </div>
 
-    <script>
-        // 실제 과거 수익률 데이터
-        const historicalReturns = {
-            VOO: {
-                '3년': 0.572,    // 57.2%
-                '5년': 1.0279,   // 102.79%
-                '10년': 3.0696   // 306.96%
-            },
-            SPXL: {
-                '3년': 1.24,     // 124%
-                '5년': 2.5227,   // 252.27%
-                '10년': 11.6175  // 1,161.75%
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+        let db = null;
+        let firebaseApp = null;
+
+        // 전역 함수들을 window 객체에 추가
+        window.initializeFirebase = initializeFirebase;
+        window.saveInitialSettings = saveInitialSettings;
+        window.saveMonthlyRecord = saveMonthlyRecord;
+        window.showTab = showTab;
+        window.deleteRecord = deleteRecord;
+
+        async function initializeFirebase() {
+            try {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyAAXr7parhL6wQuUzy4MPvVhV6-J53wzcA",
+                    authDomain: "pastelmovie-cac7a.firebaseapp.com",
+                    databaseURL: "https://pastelmovie-cac7a-default-rtdb.firebaseio.com",
+                    projectId: "pastelmovie-cac7a",
+                    storageBucket: "pastelmovie-cac7a.firebasestorage.app",
+                    messagingSenderId: "543294016464",
+                    appId: "1:543294016464:web:47162285ca02d3cfb587d5",
+                    measurementId: "G-LK2Q13294B"
+                };
+
+                firebaseApp = initializeApp(firebaseConfig);
+                db = getFirestore(firebaseApp);
+
+                document.getElementById('firebaseStatus').innerHTML = '✅ Firebase 연결 성공! (pastelmovie-cac7a 프로젝트 사용 중)';
+                document.getElementById('firebaseStatus').className = 'firebase-status';
+
+                // 기존 데이터 로드
+                loadMonthlyRecords();
+                updateDashboard();
+
+            } catch (error) {
+                console.error('Firebase 초기화 오류:', error);
+                document.getElementById('firebaseStatus').innerHTML = '❌ Firebase 연결 실패: ' + error.message;
+                document.getElementById('firebaseStatus').className = 'firebase-status error';
             }
-        };
+        }
 
-        // 연간 및 월간 수익률 계산
-        const vooAnnualReturn = Math.pow(1 + historicalReturns.VOO['10년'], 1/10) - 1;
-        const spxlAnnualReturn = Math.pow(1 + historicalReturns.SPXL['10년'], 1/10) - 1;
-        const vooMonthlyReturn = Math.pow(1 + vooAnnualReturn, 1/12) - 1;
-        const spxlMonthlyReturn = Math.pow(1 + spxlAnnualReturn, 1/12) - 1;
-
-        function calculateAll() {
-            const initialAmount = parseInt(document.getElementById('initialAmount').value) || 0;
-            const monthlyAmount = parseInt(document.getElementById('monthlyAmount').value) || 0;
-            
-            if (initialAmount === 0 && monthlyAmount === 0) {
-                alert('원금 또는 월 납입금을 입력해주세요!');
+        async function saveInitialSettings() {
+            if (!db) {
+                alert('먼저 Firebase를 연결해주세요.');
                 return;
             }
 
-            // 기본 결과 계산
-            calculateBasicReturns(initialAmount, monthlyAmount);
-            
-            // 월별 시뮬레이션 생성
-            generateMonthlySimulation(initialAmount, monthlyAmount);
-            
-            // 월별 시뮬레이션 표시
-            document.getElementById('monthlySimulation').style.display = 'block';
+            const initialData = {
+                type: 'initial_setting',
+                date: document.getElementById('startDate').value,
+                vooAmount: parseInt(document.getElementById('initialVooAmount').value) || 0,
+                spxlAmount: parseInt(document.getElementById('initialSpxlAmount').value) || 0,
+                timestamp: new Date()
+            };
+
+            try {
+                await addDoc(collection(db, 'investment_records'), initialData);
+                alert('초기 설정이 저장되었습니다!');
+                loadMonthlyRecords();
+                updateDashboard();
+            } catch (error) {
+                console.error('저장 오류:', error);
+                alert('저장 중 오류가 발생했습니다: ' + error.message);
+            }
         }
 
-        function calculateBasicReturns(initialAmount, monthlyAmount) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
+        async function saveMonthlyRecord() {
+            if (!db) {
+                alert('먼저 Firebase를 연결해주세요.');
+                return;
+            }
 
-            // VOO 결과 생성
-            const vooCard = createETFCard('VOO', '📊 S&P 500 Index ETF', 'voo-header', historicalReturns.VOO, initialAmount, monthlyAmount);
-            resultsDiv.appendChild(vooCard);
+            const recordData = {
+                type: 'monthly_record',
+                date: document.getElementById('recordDate').value,
+                vooInvestment: parseInt(document.getElementById('monthlyVooInvestment').value) || 0,
+                spxlInvestment: parseInt(document.getElementById('monthlySpxlInvestment').value) || 0,
+                vooCurrentValue: parseInt(document.getElementById('currentVooValue').value) || 0,
+                spxlCurrentValue: parseInt(document.getElementById('currentSpxlValue').value) || 0,
+                expectedReturn: parseFloat(document.getElementById('expectedAnnualReturn').value) || 0,
+                timestamp: new Date()
+            };
 
-            // SPXL 결과 생성
-            const spxlCard = createETFCard('SPXL', '🚀 S&P 500 3X Leveraged ETF', 'spxl-header', historicalReturns.SPXL, initialAmount, monthlyAmount);
-            resultsDiv.appendChild(spxlCard);
+            if (!recordData.date) {
+                alert('날짜를 선택해주세요.');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, 'investment_records'), recordData);
+                alert('월별 기록이 저장되었습니다!');
+                
+                // 입력 필드 초기화
+                document.getElementById('monthlyVooInvestment').value = '';
+                document.getElementById('monthlySpxlInvestment').value = '';
+                document.getElementById('currentVooValue').value = '';
+                document.getElementById('currentSpxlValue').value = '';
+                document.getElementById('expectedAnnualReturn').value = '';
+                
+                loadMonthlyRecords();
+                updateDashboard();
+            } catch (error) {
+                console.error('저장 오류:', error);
+                alert('저장 중 오류가 발생했습니다: ' + error.message);
+            }
         }
 
-        function createETFCard(etfName, fullName, headerClass, returns, initialAmount, monthlyAmount) {
-            const card = document.createElement('div');
-            card.className = 'etf-card';
+        async function loadMonthlyRecords() {
+            if (!db) return;
 
-            const periods = ['3년', '5년', '10년'];
-            let cardContent = `
-                <div class="etf-header ${headerClass}">
-                    ${etfName} - ${fullName}
-                </div>
-                <div class="etf-content">
-            `;
+            try {
+                const q = query(collection(db, 'investment_records'), orderBy('timestamp', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                let recordsHtml = '';
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.type === 'monthly_record') {
+                        const vooReturn = data.vooCurrentValue > 0 && data.vooInvestment > 0 ? 
+                            ((data.vooCurrentValue - data.vooInvestment) / data.vooInvestment * 100).toFixed(1) : 'N/A';
+                        const spxlReturn = data.spxlCurrentValue > 0 && data.spxlInvestment > 0 ? 
+                            ((data.spxlCurrentValue - data.spxlInvestment) / data.spxlInvestment * 100).toFixed(1) : 'N/A';
 
-            periods.forEach(period => {
-                const years = parseInt(period);
-                const totalReturn = returns[period];
-                const annualizedReturn = Math.pow(1 + totalReturn, 1/years) - 1;
-                
-                let totalValue = initialAmount;
-                const monthlyReturn = Math.pow(1 + annualizedReturn, 1/12) - 1;
-                
-                if (monthlyAmount > 0) {
-                    for (let month = 1; month <= years * 12; month++) {
-                        totalValue = totalValue * (1 + monthlyReturn) + monthlyAmount;
+                        recordsHtml += `
+                            <div class="monthly-record">
+                                <div class="record-header">
+                                    <span class="record-date">${data.date}</span>
+                                    <button class="btn btn-danger" onclick="deleteRecord('${doc.id}')" style="padding: 5px 10px; font-size: 0.9rem;">🗑️ 삭제</button>
+                                </div>
+                                <div class="record-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">VOO 투자금:</span>
+                                        <span class="detail-value">${formatCurrency(data.vooInvestment)}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">SPXL 투자금:</span>
+                                        <span class="detail-value">${formatCurrency(data.spxlInvestment)}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">VOO 평가액:</span>
+                                        <span class="detail-value profit">${formatCurrency(data.vooCurrentValue)}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">SPXL 평가액:</span>
+                                        <span class="detail-value profit">${formatCurrency(data.spxlCurrentValue)}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">예상 수익률:</span>
+                                        <span class="detail-value">${data.expectedReturn}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     }
-                } else {
-                    totalValue = initialAmount * (1 + totalReturn);
-                }
-                
-                const totalInvested = initialAmount + (monthlyAmount * years * 12);
-                const profit = totalValue - totalInvested;
-                const profitRate = (profit / totalInvested) * 100;
+                });
 
-                cardContent += `
-                    <div class="period-result">
-                        <div class="period-title">${period} 투자 결과</div>
-                        <div class="result-row">
-                            <span class="result-label">총 투자금액</span>
-                            <span class="result-value">${formatCurrency(totalInvested)}</span>
-                        </div>
-                        <div class="result-row">
-                            <span class="result-label">최종 자산</span>
-                            <span class="result-value profit">${formatCurrency(totalValue)}</span>
-                        </div>
-                        <div class="result-row">
-                            <span class="result-label">총 수익</span>
-                            <span class="result-value profit">${formatCurrency(profit)}</span>
-                        </div>
-                        <div class="result-row">
-                            <span class="result-label">수익률</span>
-                            <span class="result-value profit">${profitRate.toFixed(1)}%</span>
-                        </div>
+                document.getElementById('monthlyRecords').innerHTML = recordsHtml || '<p>저장된 기록이 없습니다.</p>';
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+            }
+        }
+
+        async function deleteRecord(docId) {
+            if (!db) return;
+            
+            if (confirm('이 기록을 삭제하시겠습니까?')) {
+                try {
+                    await deleteDoc(doc(db, 'investment_records', docId));
+                    alert('기록이 삭제되었습니다.');
+                    loadMonthlyRecords();
+                    updateDashboard();
+                } catch (error) {
+                    console.error('삭제 오류:', error);
+                    alert('삭제 중 오류가 발생했습니다.');
+                }
+            }
+        }
+
+        async function updateDashboard() {
+            if (!db) return;
+
+            try {
+                const q = query(collection(db, 'investment_records'), orderBy('timestamp', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                let totalVooInvested = 0;
+                let totalSpxlInvested = 0;
+                let latestVooValue = 0;
+                let latestSpxlValue = 0;
+                let latestExpectedReturn = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.type === 'initial_setting') {
+                        totalVooInvested += data.vooAmount;
+                        totalSpxlInvested += data.spxlAmount;
+                    } else if (data.type === 'monthly_record') {
+                        totalVooInvested += data.vooInvestment;
+                        totalSpxlInvested += data.spxlInvestment;
+                        if (!latestVooValue) {
+                            latestVooValue = data.vooCurrentValue;
+                            latestSpxlValue = data.spxlCurrentValue;
+                            latestExpectedReturn = data.expectedReturn;
+                        }
+                    }
+                });
+
+                const totalInvested = totalVooInvested + totalSpxlInvested;
+                const totalCurrentValue = latestVooValue + latestSpxlValue;
+                const totalProfit = totalCurrentValue - totalInvested;
+                const totalReturnRate = totalInvested > 0 ? (totalProfit / totalInvested * 100).toFixed(1) : 0;
+
+                const statusHtml = `
+                    <div class="status-row">
+                        <span class="status-label">총 투자금액</span>
+                        <span class="status-value">${formatCurrency(totalInvested)}</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">현재 평가액</span>
+                        <span class="status-value ${totalCurrentValue >= totalInvested ? 'profit' : 'loss'}">${formatCurrency(totalCurrentValue)}</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">총 손익</span>
+                        <span class="status-value ${totalProfit >= 0 ? 'profit' : 'loss'}">${formatCurrency(totalProfit)}</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">수익률</span>
+                        <span class="status-value ${totalReturnRate >= 0 ? 'profit' : 'loss'}">${totalReturnRate}%</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">VOO 투자금</span>
+                        <span class="status-value">${formatCurrency(totalVooInvested)}</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">SPXL 투자금</span>
+                        <span class="status-value">${formatCurrency(totalSpxlInvested)}</span>
                     </div>
                 `;
-            });
 
-            cardContent += '</div>';
-            card.innerHTML = cardContent;
-            return card;
+                document.getElementById('currentStatus').innerHTML = statusHtml;
+
+                // 목표 대비 성과 계산
+                const targetHtml = `
+                    <div class="status-row">
+                        <span class="status-label">목표 연간 수익률</span>
+                        <span class="status-value">${latestExpectedReturn}%</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">현재 수익률</span>
+                        <span class="status-value ${totalReturnRate >= latestExpectedReturn ? 'profit' : 'loss'}">${totalReturnRate}%</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">목표 달성도</span>
+                        <span class="status-value ${totalReturnRate >= latestExpectedReturn ? 'profit' : 'loss'}">${latestExpectedReturn > 0 ? (totalReturnRate / latestExpectedReturn * 100).toFixed(1) : 0}%</span>
+                    </div>
+                `;
+
+                document.getElementById('targetComparison').innerHTML = targetHtml;
+
+            } catch (error) {
+                console.error('대시보드 업데이트 오류:', error);
+            }
         }
 
-        function generateMonthlySimulation(initialAmount, monthlyAmount) {
-            const tableBody = document.getElementById('monthlyTableBody');
-            tableBody.innerHTML = '';
-
-            let vooValue = initialAmount;
-            let spxlValue = initialAmount;
-
-            // 초기 행
-            const initialRow = document.createElement('tr');
-            initialRow.innerHTML = `
-                <td><strong>초기</strong></td>
-                <td>${formatCurrency(initialAmount)}</td>
-                <td>₩0</td>
-                <td>₩0</td>
-            `;
-            tableBody.appendChild(initialRow);
-
-            // 120개월 계산
-            for (let month = 1; month <= 120; month++) {
-                // 매월 납입금 추가 후 수익률 적용
-                vooValue = (vooValue + monthlyAmount) * (1 + vooMonthlyReturn);
-                spxlValue = (spxlValue + monthlyAmount) * (1 + spxlMonthlyReturn);
-
-                const totalInvested = initialAmount + (monthlyAmount * month);
-                const vooProfit = Math.max(0, vooValue - totalInvested);
-                const spxlProfit = Math.max(0, spxlValue - totalInvested);
-
-                // 기간 표시 형식
-                const years = Math.floor(month / 12);
-                const months = month % 12;
-                let period;
-                
-                if (years > 0 && months > 0) {
-                    period = `${years}년 ${months}개월`;
-                } else if (years > 0) {
-                    period = `${years}년`;
-                } else {
-                    period = `${months}개월`;
-                }
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${period}</strong></td>
-                    <td>${formatCurrency(totalInvested)}</td>
-                    <td class="profit-positive">+${formatCurrency(vooProfit)}</td>
-                    <td class="profit-positive">+${formatCurrency(spxlProfit)}</td>
-                `;
-                tableBody.appendChild(row);
+        function showTab(tabName) {
+            // 모든 탭 숨기기
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 선택된 탭 보이기
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'monthly') {
+                loadMonthlyRecords();
+                // 오늘 날짜를 기본값으로 설정
+                document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
             }
         }
 
@@ -506,14 +724,14 @@
             }).format(amount);
         }
 
-        // 페이지 로드 시 기본 계산
+        // 페이지 로드 시 자동으로 Firebase 연결
         document.addEventListener('DOMContentLoaded', function() {
-            calculateAll();
+            // 자동으로 Firebase 연결 시도
+            initializeFirebase();
+            
+            // 오늘 날짜를 기본값으로 설정
+            document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
         });
-
-        // 입력값 변경 시 자동 계산
-        document.getElementById('initialAmount').addEventListener('input', calculateAll);
-        document.getElementById('monthlyAmount').addEventListener('input', calculateAll);
     </script>
 </body>
 </html>
