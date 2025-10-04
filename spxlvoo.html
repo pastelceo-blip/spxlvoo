@@ -602,6 +602,18 @@
             .summary-grid {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
+            
+            .investment-input-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 20px;
+            }
+            
+            .confirm-button-container {
+                align-items: center;
+                justify-content: center;
+                padding-bottom: 0;
+            }
         }
     </style>
 </head>
@@ -673,13 +685,24 @@
             
             <!-- 목표 달성 예정일 섹션 -->
             <div class="add-transaction-card">
-                <h3>🎯 목표 달성 예정일</h3>
+                <h3>🎯 목표 달성 예정일 시뮬레이션</h3>
                 
                 <!-- 월 추가투자 설정 -->
-                <div class="form-grid" style="margin-bottom: 20px;">
-                    <div class="form-group">
-                        <label for="monthlyInvestmentInput">월 추가투자 금액 (원)</label>
-                        <input type="number" id="monthlyInvestmentInput" value="1000000" placeholder="예: 1000000" onchange="updateDashboard()">
+                <div class="monthly-investment-setting">
+                    <div class="setting-header">
+                        <h4>💰 앞으로 매월 추가 투자할 금액 설정</h4>
+                        <p>현재 포트폴리오에 매월 얼마를 더 투자할 계획인지 입력하세요. 이 금액을 바탕으로 목표 달성일을 계산합니다.</p>
+                    </div>
+                    <div class="investment-input-row">
+                        <div class="form-group" style="flex: 1; margin-right: 15px;">
+                            <label for="monthlyInvestmentInput">매월 추가 투자 금액 (원)</label>
+                            <input type="number" id="monthlyInvestmentInput" value="1000000" placeholder="예: 1000000">
+                        </div>
+                        <div class="confirm-button-container">
+                            <button type="button" class="btn btn-primary confirm-btn" onclick="updateDashboard()">
+                                <span>✅</span> 확인
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
