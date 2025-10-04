@@ -799,32 +799,88 @@
         window.deleteTransaction = deleteTransaction;
         window.loadInitialData = loadInitialData;
         window.updateCurrentPrices = updateCurrentPrices;
+        window.updateDashboard = updateDashboard;
 
-        // 현재가격 업데이트 함수
-        async function updateCurrentPrices() {
-            const vooPrice = parseFloat(document.getElementById('currentVooPrice').value);
-            const spxlPrice = parseFloat(document.getElementById('currentSpxlPrice').value);
-            const qqqmPrice = parseFloat(document.getElementById('currentQqqmPrice').value);
-
-            if (!vooPrice && !spxlPrice && !qqqmPrice) {
-                alert('최소 하나의 현재가격을 입력해주세요.');
-                return;
-            }
-
-            // 현재가격 저장 (로컬 스토리지 또는 글로벌 변수 사용)
-            const currentPrices = {
-                VOO: vooPrice || getCurrentPrice('VOO'),
-                SPXL: spxlPrice || getCurrentPrice('SPXL'),
-                QQQM: qqqmPrice || getCurrentPrice('QQQM')
-            };
-
-            // 현재가격을 로컬 스토리지에 저장
-            localStorage.setItem('currentPrices', JSON.stringify(currentPrices));
-
-            // 대시보드 업데이트
-            updateDashboard();
+        // 대시보드 업데이트 함수를 맨 앞으로 이동
+        function updateDashboard() {
+            console.log('대시보드 업데이트 시작, 거래 수:', transactions.length);
             
-            alert('현재가격이 업데이트되었습니다!');
+            // 저장된 현재가격 가져오기
+            const currentPrices = JSON.parse(localStorage.getItem('currentPrices') || '{}');
+            
+            // ETF별 데이터 집계
+            const etfData = {};
+            let totalInvested = 0;
+            let totalCurrentValue = 0;
+            let firstInvestmentDate = null;
+
+            transactions.forEach(transaction => {
+                console.log('처리 중인 거래:', transaction);
+                
+                const symbol = transaction.symbol;
+                if (!etfData[symbol]) {
+                    etfData[symbol] = {
+                        shares: 0,
+                        totalInvested: 0,
+                        currentValue: 0,
+                        transactions: [],
+                        firstDate: transaction.date,
+                        avgPrice: 0
+                    };
+                }
+
+                // 첫 투자일 추적
+                if (!firstInvestmentDate || transaction.date < firstInvestmentDate) {
+                    firstInvestmentDate = transaction.date;
+                }
+                if (transaction.date < etfData[symbol].firstDate) {
+                    etfData[symbol].firstDate = transaction.date;
+                }
+
+                etfData[symbol].shares += transaction.shares;
+                etfData[symbol].totalInvested += transaction.totalAmount;
+                etfData[symbol].transactions.push(transaction);
+
+                // 현재가격 사용 (저장된 값 우선, 없으면 매수가)
+                const currentPrice = currentPrices[symbol] || transaction.pricePerShare;
+                etfData[symbol].currentValue += transaction.shares * currentPrice;
+
+                totalInvested += transaction.totalAmount;
+                totalCurrentValue += transaction.shares * currentPrice;
+            });
+
+            console.log('총 투자금액:', totalInvested);
+            console.log('총 평가액:', totalCurrentValue);
+
+            // 각 ETF별 평균 단가 계산
+            Object.keys(etfData).forEach(symbol => {
+                etfData[symbol].avgPrice = etfData[symbol].totalInvested / etfData[symbol].shares;
+            });
+
+            // 전체 요약 업데이트
+            const totalProfit = totalCurrentValue - totalInvested;
+            const totalReturn = totalInvested > 0 ? (totalProfit / totalInvested * 100) : 0;
+            
+            // 연 환산 수익률 계산
+            const investmentDays = firstInvestmentDate ? calculateInvestmentDays(firstInvestmentDate) : 0;
+            const annualizedReturn = investmentDays > 0 ? calculateAnnualizedReturn(totalReturn, investmentDays) * 100 : 0;
+
+            document.getElementById('totalInvested').textContent = formatCurrency(totalInvested);
+            document.getElementById('totalValue').textContent = formatCurrency(totalCurrentValue);
+            document.getElementById('totalProfit').textContent = formatCurrency(totalProfit);
+            document.getElementById('totalReturn').textContent = totalReturn.toFixed(1) + '%';
+            document.getElementById('annualizedReturn').textContent = annualizedReturn.toFixed(1) + '%';
+
+            // 수익률에 따른 색상 적용
+            document.getElementById('totalProfit').className = totalProfit >= 0 ? 'profit' : 'loss';
+            document.getElementById('totalReturn').className = totalProfit >= 0 ? 'profit' : 'loss';
+            document.getElementById('annualizedReturn').className = totalProfit >= 0 ? 'profit' : 'loss';
+
+            // ETF 카드 업데이트
+            updateETFCards(etfData, currentPrices);
+            
+            // 목표 달성 예정일 업데이트
+            updateTargetAchievement(totalCurrentValue, annualizedReturn);
         }
 
         // 현재가격 가져오기
@@ -1252,86 +1308,31 @@
             });
         }
 
-        // 대시보드 업데이트
-        function updateDashboard() {
-            console.log('대시보드 업데이트 시작, 거래 수:', transactions.length);
+        // 현재가격 업데이트 함수
+        async function updateCurrentPrices() {
+            const vooPrice = parseFloat(document.getElementById('currentVooPrice').value);
+            const spxlPrice = parseFloat(document.getElementById('currentSpxlPrice').value);
+            const qqqmPrice = parseFloat(document.getElementById('currentQqqmPrice').value);
+
+            if (!vooPrice && !spxlPrice && !qqqmPrice) {
+                alert('최소 하나의 현재가격을 입력해주세요.');
+                return;
+            }
+
+            // 현재가격 저장 (로컬 스토리지 또는 글로벌 변수 사용)
+            const currentPrices = {
+                VOO: vooPrice || getCurrentPrice('VOO'),
+                SPXL: spxlPrice || getCurrentPrice('SPXL'),
+                QQQM: qqqmPrice || getCurrentPrice('QQQM')
+            };
+
+            // 현재가격을 로컬 스토리지에 저장
+            localStorage.setItem('currentPrices', JSON.stringify(currentPrices));
+
+            // 대시보드 업데이트
+            updateDashboard();
             
-            // 저장된 현재가격 가져오기
-            const currentPrices = JSON.parse(localStorage.getItem('currentPrices') || '{}');
-            
-            // ETF별 데이터 집계
-            const etfData = {};
-            let totalInvested = 0;
-            let totalCurrentValue = 0;
-            let firstInvestmentDate = null;
-
-            transactions.forEach(transaction => {
-                console.log('처리 중인 거래:', transaction);
-                
-                const symbol = transaction.symbol;
-                if (!etfData[symbol]) {
-                    etfData[symbol] = {
-                        shares: 0,
-                        totalInvested: 0,
-                        currentValue: 0,
-                        transactions: [],
-                        firstDate: transaction.date,
-                        avgPrice: 0
-                    };
-                }
-
-                // 첫 투자일 추적
-                if (!firstInvestmentDate || transaction.date < firstInvestmentDate) {
-                    firstInvestmentDate = transaction.date;
-                }
-                if (transaction.date < etfData[symbol].firstDate) {
-                    etfData[symbol].firstDate = transaction.date;
-                }
-
-                etfData[symbol].shares += transaction.shares;
-                etfData[symbol].totalInvested += transaction.totalAmount;
-                etfData[symbol].transactions.push(transaction);
-
-                // 현재가격 사용 (저장된 값 우선, 없으면 매수가)
-                const currentPrice = currentPrices[symbol] || transaction.pricePerShare;
-                etfData[symbol].currentValue += transaction.shares * currentPrice;
-
-                totalInvested += transaction.totalAmount;
-                totalCurrentValue += transaction.shares * currentPrice;
-            });
-
-            console.log('총 투자금액:', totalInvested);
-            console.log('총 평가액:', totalCurrentValue);
-
-            // 각 ETF별 평균 단가 계산
-            Object.keys(etfData).forEach(symbol => {
-                etfData[symbol].avgPrice = etfData[symbol].totalInvested / etfData[symbol].shares;
-            });
-
-            // 전체 요약 업데이트
-            const totalProfit = totalCurrentValue - totalInvested;
-            const totalReturn = totalInvested > 0 ? (totalProfit / totalInvested * 100) : 0;
-            
-            // 연 환산 수익률 계산
-            const investmentDays = firstInvestmentDate ? calculateInvestmentDays(firstInvestmentDate) : 0;
-            const annualizedReturn = investmentDays > 0 ? calculateAnnualizedReturn(totalReturn, investmentDays) * 100 : 0;
-
-            document.getElementById('totalInvested').textContent = formatCurrency(totalInvested);
-            document.getElementById('totalValue').textContent = formatCurrency(totalCurrentValue);
-            document.getElementById('totalProfit').textContent = formatCurrency(totalProfit);
-            document.getElementById('totalReturn').textContent = totalReturn.toFixed(1) + '%';
-            document.getElementById('annualizedReturn').textContent = annualizedReturn.toFixed(1) + '%';
-
-            // 수익률에 따른 색상 적용
-            document.getElementById('totalProfit').className = totalProfit >= 0 ? 'profit' : 'loss';
-            document.getElementById('totalReturn').className = totalProfit >= 0 ? 'profit' : 'loss';
-            document.getElementById('annualizedReturn').className = totalProfit >= 0 ? 'profit' : 'loss';
-
-            // ETF 카드 업데이트
-            updateETFCards(etfData, currentPrices);
-            
-            // 목표 달성 예정일 업데이트
-            updateTargetAchievement(totalCurrentValue, annualizedReturn);
+            alert('현재가격이 업데이트되었습니다!');
         }
 
         // ETF 카드 업데이트
