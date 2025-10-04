@@ -853,10 +853,13 @@
 
         // 목표 금액 달성 예정일 계산 (일 단위까지 정확하게)
         function calculateTargetDates(currentValue, annualReturn, monthlyInvestment = 1000000) {
+            console.log('계산 시작:', { currentValue, annualReturn, monthlyInvestment });
+            
             const targets = [200000000, 300000000, 500000000, 1000000000, 2000000000, 3000000000, 5000000000]; // 2억, 3억, 5억, 10억, 20억, 30억, 50억
             const results = [];
             
             if (annualReturn <= 0) {
+                console.log('수익률이 0 이하임');
                 return targets.map(target => ({
                     amount: target,
                     date: "수익률이 양수일 때 계산 가능",
@@ -867,8 +870,8 @@
                 }));
             }
             
-            const dailyReturn = annualReturn / 100 / 365; // 일 수익률
-            const monthlyInvestmentDaily = monthlyInvestment / 30; // 일 평균 투자금 (편의상 30일 기준)
+            const monthlyReturn = annualReturn / 100 / 12; // 월 수익률로 다시 변경 (더 정확함)
+            console.log('월 수익률:', monthlyReturn);
             
             targets.forEach(target => {
                 if (currentValue >= target) {
@@ -882,25 +885,25 @@
                         days: 0
                     });
                 } else {
-                    // 일별 계산으로 더 정확한 달성일 계산
-                    let daysNeeded = 0;
+                    // 월별 계산으로 수정 (더 현실적)
+                    let monthsNeeded = 0;
                     let futureValue = currentValue;
-                    const maxDays = 80 * 365; // 최대 80년 (50억까지 계산하므로 늘림)
+                    const maxMonths = 80 * 12; // 최대 80년
                     
-                    // 매일 계산하여 목표 금액에 도달하는 일 수 찾기
-                    while (futureValue < target && daysNeeded < maxDays) {
-                        daysNeeded++;
+                    // 매월 계산하여 목표 금액에 도달하는 월 수 찾기
+                    while (futureValue < target && monthsNeeded < maxMonths) {
+                        monthsNeeded++;
                         
-                        // 매일 수익률 적용
-                        futureValue = futureValue * (1 + dailyReturn);
+                        // 매월 수익률 적용 후 월 투자금 추가
+                        futureValue = futureValue * (1 + monthlyReturn) + monthlyInvestment;
                         
-                        // 매월 1일에 월 투자금 추가 (30일마다)
-                        if (daysNeeded % 30 === 0) {
-                            futureValue += monthlyInvestment;
+                        // 진행상황 로그 (처음 몇 개월만)
+                        if (target === 200000000 && monthsNeeded <= 5) {
+                            console.log(`${monthsNeeded}개월 후 예상값:`, futureValue.toLocaleString());
                         }
                     }
                     
-                    if (daysNeeded >= maxDays) {
+                    if (monthsNeeded >= maxMonths) {
                         results.push({
                             amount: target,
                             date: "80년+ (달성 어려움)",
@@ -913,33 +916,32 @@
                     } else {
                         // 정확한 날짜 계산
                         const targetDate = new Date();
-                        targetDate.setDate(targetDate.getDate() + daysNeeded);
+                        targetDate.setMonth(targetDate.getMonth() + monthsNeeded);
                         
-                        const years = Math.floor(daysNeeded / 365);
-                        const remainingDays = daysNeeded % 365;
-                        const months = Math.floor(remainingDays / 30);
-                        const days = remainingDays % 30;
+                        const years = Math.floor(monthsNeeded / 12);
+                        const remainingMonths = monthsNeeded % 12;
                         
                         // 날짜 포맷팅 (요일 포함)
                         const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
                         const fullDateStr = `${targetDate.getFullYear()}년 ${targetDate.getMonth() + 1}월 ${targetDate.getDate()}일 (${weekdays[targetDate.getDay()]})`;
                         
-                        // 기간 표시 (더 정확하게)
+                        // 기간 표시
                         let periodStr = '';
                         const periodParts = [];
                         
                         if (years > 0) periodParts.push(`${years}년`);
-                        if (months > 0) periodParts.push(`${months}개월`);
-                        if (days > 0) periodParts.push(`${days}일`);
+                        if (remainingMonths > 0) periodParts.push(`${remainingMonths}개월`);
                         
                         if (periodParts.length === 0) {
-                            periodStr = '오늘';
+                            periodStr = '1개월 이내';
                         } else {
                             periodStr = periodParts.join(' ') + ' 후';
                         }
                         
-                        // D-Day 계산
-                        const dDayStr = `D-${daysNeeded.toLocaleString()}`;
+                        // D-Day 계산 (월 기준)
+                        const dDayStr = `D-${monthsNeeded * 30}`;
+                        
+                        console.log(`${formatCurrency(target)} 달성: ${monthsNeeded}개월 (${periodStr})`);
                         
                         results.push({
                             amount: target,
@@ -947,9 +949,9 @@
                             fullDate: fullDateStr,
                             exactDate: targetDate,
                             dDay: dDayStr,
-                            years: years + (remainingDays / 365),
-                            months: Math.floor(daysNeeded / 30),
-                            days: daysNeeded
+                            years: years + (remainingMonths / 12),
+                            months: monthsNeeded,
+                            days: monthsNeeded * 30
                         });
                     }
                 }
@@ -961,13 +963,17 @@
         // 월 추가투자 입력 필드 추가를 위한 함수
         function getMonthlyInvestment() {
             const monthlyInput = document.getElementById('monthlyInvestmentInput');
-            return monthlyInput ? parseFloat(monthlyInput.value) || 1000000 : 1000000;
+            const value = monthlyInput ? parseFloat(monthlyInput.value) : 1000000;
+            console.log('월 투자금액:', value);
+            return value || 0;
         }
 
         // 목표 달성 섹션 업데이트
         function updateTargetAchievement(currentValue, currentAnnualReturn) {
             const targetReturn = 7.5; // 목표 연 수익률 7.5% (VOO 평균)
             const monthlyInvestment = getMonthlyInvestment(); // 월 추가투자금액
+            
+            console.log('목표 달성 계산 시작:', { currentValue, currentAnnualReturn, monthlyInvestment });
             
             // 현재 수익률 기준 계산
             const currentTargets = calculateTargetDates(currentValue, currentAnnualReturn, monthlyInvestment);
