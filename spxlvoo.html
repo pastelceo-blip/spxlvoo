@@ -851,30 +851,36 @@
             return Math.pow(1 + (totalReturn / 100), 365 / days) - 1;
         }
 
-        // 목표 금액 달성 예정일 계산 (일 단위까지 정확하게)
+        // 목표 금액 달성 예정일 계산 (완전히 새로 작성)
         function calculateTargetDates(currentValue, annualReturn, monthlyInvestment = 1000000) {
-            console.log('계산 시작:', { currentValue, annualReturn, monthlyInvestment });
+            console.log('=== 계산 시작 ===');
+            console.log('현재 자산:', formatCurrency(currentValue));
+            console.log('연간 수익률:', annualReturn + '%');
+            console.log('월 추가투자:', formatCurrency(monthlyInvestment));
             
-            const targets = [200000000, 300000000, 500000000, 1000000000, 2000000000, 3000000000, 5000000000]; // 2억, 3억, 5억, 10억, 20억, 30억, 50억
+            const targets = [200000000, 300000000, 500000000, 1000000000, 2000000000, 3000000000, 5000000000];
             const results = [];
             
-            if (annualReturn <= 0) {
-                console.log('수익률이 0 이하임');
+            if (annualReturn <= 0 || currentValue <= 0) {
+                console.log('수익률이나 현재 자산이 0 이하');
                 return targets.map(target => ({
                     amount: target,
-                    date: "수익률이 양수일 때 계산 가능",
-                    fullDate: "N/A",
+                    date: "계산 불가",
+                    fullDate: "데이터 부족",
                     years: 0,
                     months: 0,
                     days: 0
                 }));
             }
             
-            const monthlyReturn = annualReturn / 100 / 12; // 월 수익률로 다시 변경 (더 정확함)
-            console.log('월 수익률:', monthlyReturn);
+            const monthlyReturn = annualReturn / 100 / 12;
+            console.log('월간 수익률:', (monthlyReturn * 100).toFixed(4) + '%');
             
-            targets.forEach(target => {
+            targets.forEach((target, index) => {
+                console.log(`\n--- ${formatCurrency(target)} 달성 계산 ---`);
+                
                 if (currentValue >= target) {
+                    console.log('이미 달성됨');
                     results.push({
                         amount: target,
                         date: "달성 완료! 🎉",
@@ -885,63 +891,60 @@
                         days: 0
                     });
                 } else {
-                    // 월별 계산으로 수정 (더 현실적)
-                    let monthsNeeded = 0;
-                    let futureValue = currentValue;
-                    const maxMonths = 80 * 12; // 최대 80년
+                    let months = 0;
+                    let value = currentValue;
+                    const maxMonths = 100 * 12; // 100년 제한
                     
-                    // 매월 계산하여 목표 금액에 도달하는 월 수 찾기
-                    while (futureValue < target && monthsNeeded < maxMonths) {
-                        monthsNeeded++;
+                    console.log('시작값:', formatCurrency(value));
+                    
+                    while (value < target && months < maxMonths) {
+                        months++;
                         
-                        // 매월 수익률 적용 후 월 투자금 추가
-                        futureValue = futureValue * (1 + monthlyReturn) + monthlyInvestment;
+                        // 월 수익률 적용
+                        value = value * (1 + monthlyReturn);
                         
-                        // 진행상황 로그 (처음 몇 개월만)
-                        if (target === 200000000 && monthsNeeded <= 5) {
-                            console.log(`${monthsNeeded}개월 후 예상값:`, futureValue.toLocaleString());
+                        // 월 투자금 추가
+                        value = value + monthlyInvestment;
+                        
+                        // 처음 12개월은 로그 출력
+                        if (index === 0 && months <= 12) {
+                            console.log(`${months}개월 후: ${formatCurrency(value)} (수익률 적용 후 + ${formatCurrency(monthlyInvestment)} 추가)`);
                         }
                     }
                     
-                    if (monthsNeeded >= maxMonths) {
+                    if (months >= maxMonths) {
+                        console.log('100년 초과');
                         results.push({
                             amount: target,
-                            date: "80년+ (달성 어려움)",
+                            date: "100년+ (달성 어려움)",
                             fullDate: "장기간 소요",
                             exactDate: null,
-                            years: 80,
+                            years: 100,
                             months: 0,
                             days: 0
                         });
                     } else {
-                        // 정확한 날짜 계산
                         const targetDate = new Date();
-                        targetDate.setMonth(targetDate.getMonth() + monthsNeeded);
+                        targetDate.setMonth(targetDate.getMonth() + months);
                         
-                        const years = Math.floor(monthsNeeded / 12);
-                        const remainingMonths = monthsNeeded % 12;
+                        const years = Math.floor(months / 12);
+                        const remainingMonths = months % 12;
                         
-                        // 날짜 포맷팅 (요일 포함)
                         const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
                         const fullDateStr = `${targetDate.getFullYear()}년 ${targetDate.getMonth() + 1}월 ${targetDate.getDate()}일 (${weekdays[targetDate.getDay()]})`;
                         
-                        // 기간 표시
                         let periodStr = '';
-                        const periodParts = [];
-                        
-                        if (years > 0) periodParts.push(`${years}년`);
-                        if (remainingMonths > 0) periodParts.push(`${remainingMonths}개월`);
-                        
-                        if (periodParts.length === 0) {
-                            periodStr = '1개월 이내';
+                        if (years > 0 && remainingMonths > 0) {
+                            periodStr = `${years}년 ${remainingMonths}개월 후`;
+                        } else if (years > 0) {
+                            periodStr = `${years}년 후`;
                         } else {
-                            periodStr = periodParts.join(' ') + ' 후';
+                            periodStr = `${remainingMonths}개월 후`;
                         }
                         
-                        // D-Day 계산 (월 기준)
-                        const dDayStr = `D-${monthsNeeded * 30}`;
+                        const dDayStr = `D-${(months * 30).toLocaleString()}`;
                         
-                        console.log(`${formatCurrency(target)} 달성: ${monthsNeeded}개월 (${periodStr})`);
+                        console.log(`결과: ${months}개월 (${periodStr}), 최종값: ${formatCurrency(value)}`);
                         
                         results.push({
                             amount: target,
@@ -950,13 +953,14 @@
                             exactDate: targetDate,
                             dDay: dDayStr,
                             years: years + (remainingMonths / 12),
-                            months: monthsNeeded,
-                            days: monthsNeeded * 30
+                            months: months,
+                            days: months * 30
                         });
                     }
                 }
             });
             
+            console.log('=== 계산 완료 ===\n');
             return results;
         }
 
